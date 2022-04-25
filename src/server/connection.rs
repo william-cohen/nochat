@@ -79,4 +79,8 @@ impl Connection {
     pub fn push_crfl(&mut self) -> Result<(), Error> {
         self.push(CRLF)
     }
+
+    pub fn push_message(&mut self, content: &str) -> Result<(), Error> {
+        self.push(&format!("<li><a href=\"#\" class=\"btn active\">{}</a></li>", content))
+    }
 }

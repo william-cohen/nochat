@@ -49,7 +49,7 @@ impl Server {
         let sub = self.pubsub.lazy_subscribe("messages");
 
         for message in &self.chatlog {
-            connection.push(&format!("<p>{}</p>", message)).unwrap();
+            connection.push_message(message).unwrap();
         }
 
         thread::spawn(move || {
@@ -57,7 +57,7 @@ impl Server {
             let sub = sub.activate(move |message| tx.send(message).unwrap());
 
             for message in rx.iter() {
-                connection.push(&format!("<p>{}</p>", message)).unwrap();
+                connection.push_message(&message).unwrap();
             }
             println!("Hang up: {:?}", sub);
         });
