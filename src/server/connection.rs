@@ -4,6 +4,8 @@ use std::slice::SliceIndex;
 use regex::Regex;
 use ammonia::clean;
 
+use super::message::Message;
+
 
 pub const CRLF: &str = "\r\n";
 
@@ -58,10 +60,10 @@ impl Connection {
     }
 
     pub fn get_message(&self) -> Option<String> {
-        let re = Regex::new(r"(.*) ([^?]*)(?:\?message=)?(.*)? HTTP/1.1.*").unwrap();
+        let re = Regex::new(r".*message=(.*)").unwrap();
         re
             .captures(&self.request)
-            .and_then(|captures| captures.get(3))
+            .and_then(|captures| captures.get(1))
             .map(|mat| mat.as_str().into())
             .and_then(|url_message| urlencoding::decode(url_message).ok())
             .map(|cow| cow.into_owned())
@@ -80,7 +82,7 @@ impl Connection {
         self.push(CRLF)
     }
 
-    pub fn push_message(&mut self, content: &str) -> Result<(), Error> {
-        self.push(&format!("<li><a href=\"#\" class=\"btn active\">{}</a></li>", content))
+    pub fn push_message(&mut self, message: &Message) -> Result<(), Error> {
+        self.push(&format!("<li><span>{}</span><a href=\"#\" class=\"btn active\">{}</a></li>", message.get_user(), message.get_content()))
     }
 }

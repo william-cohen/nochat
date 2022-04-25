@@ -7,6 +7,5 @@ edition = "2018"
 
 [dependencies]
 regex = "1"
-pubsub = "*"
 urlencoding = "2.1.0"
 ammonia = "3"

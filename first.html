@@ -150,7 +150,7 @@
       }
 
       .box ul.menu li a {
-          margin-left: 80px;
+          margin-left: 20px;
           color: #000000;
       }
 
@@ -159,14 +159,7 @@
           color: #ffffff;
       }
 
-      .box ul.menu li::before {
-          position: absolute;
-          content: "Name";
-          color: #c71e14;
-      }
-
-      .box ul.menu li.active::before, .box ul.menu li:hover::before {
-          background-color: #0a2fc4;
+      .box ul.menu span {
           color: #fd6f6b;
       }
 
@@ -225,11 +218,13 @@
       <div class="box">
         <div class="content">
           <span class="title">Say something</span>
-          <form class="input-group" action="/send" method="GET">
+          <form class="input-group" action="/send" method="POST">
             <label for="message">Enter your message</label>
             <input name="message" id="message" />
-          </div>
+          </form>
         </div>
+      </div>
+      
 
       <div class="box" style="margin-top: 50px;">
         <div class="content">

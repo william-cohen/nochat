@@ -172,7 +172,6 @@ name = "nochat"
 version = "0.1.0"
 dependencies = [
  "ammonia",
- "pubsub",
  "regex",
  "urlencoding",
 ]
@@ -269,15 +268,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ec757218438d5fda206afc041538b2f6d889286160d649a86a24d37e1235afd1"
 dependencies = [
  "unicode-xid",
-]
-
-[[package]]
-name = "pubsub"
-version = "0.2.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7943ab27ead5ae69b4a0d28961a089fe55536e6e092856a9b0ae8dfc50275e8c"
-dependencies = [
- "threadpool",
 ]
 
 [[package]]
@@ -418,12 +408,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "threadpool"
-version = "0.1.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a63a15230070db3a9f599491c23c4bf38e86bd47c8f2d86ff1f8d3b2e85b0c70"
-
-[[package]]
 name = "tinyvec"
 version = "1.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -485,9 +469,9 @@ checksum = "09cc8ee72d2a9becf2f2febe0205bbed8fc6615b7cb429ad062dc7b7ddd036a9"
 
 [[package]]
 name = "wasi"
-version = "0.10.2+wasi-snapshot-preview1"
+version = "0.10.0+wasi-snapshot-preview1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fd6fbd9a79829dd1ad0cc20627bf1ed606756a7f77edff7b66b7064f9cb327c6"
+checksum = "1a143597ca7c7793eff794def352d41792a93c481eb1042423ff7ff72ba2c31f"
 
 [[package]]
 name = "windows-sys"

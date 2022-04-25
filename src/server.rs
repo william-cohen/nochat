@@ -2,21 +2,22 @@ use std::net::{TcpListener, TcpStream, ToSocketAddrs};
 use std::error::Error;
 use std::sync::mpsc;
 use std::{thread, fs};
-use pubsub::PubSub;
 
 use crate::server::connection::Connection;
+use crate::server::message::Message;
 
 mod connection;
+mod message;
 
 pub struct Server {
-    pubsub: PubSub,
-    chatlog: Vec<String>
+    chatsubs: Vec<mpsc::Sender<Message>>,
+    chatlog: Vec<Message>
 }
 
 impl Server {
     pub fn new() -> Self {
         Server {
-            pubsub: PubSub::new(2),
+            chatsubs: Vec::new(),
             chatlog: Vec::new()
         }
     }
@@ -45,28 +46,33 @@ impl Server {
 
         connection.push("HTTP/1.1 200 OK\r\nContent-type: text/html; charset=utf-8\r\n\r\n").unwrap();
         connection.push(&first).unwrap();
-
-        let sub = self.pubsub.lazy_subscribe("messages");
-
         for message in &self.chatlog {
             connection.push_message(message).unwrap();
         }
 
-        thread::spawn(move || {
-            let (tx, rx) = mpsc::channel::<String>();
-            let sub = sub.activate(move |message| tx.send(message).unwrap());
+        let (tx, rx) = mpsc::channel::<Message>();
 
+        self.chatsubs.push(tx);
+
+        thread::spawn(move || {
             for message in rx.iter() {
                 connection.push_message(&message).unwrap();
             }
-            println!("Hang up: {:?}", sub);
         });
     }
 
     fn handle_message_post(&mut self, connection: Connection) {
-        if let Some(message) = connection.get_message() {
-            self.chatlog.push(message.clone());
-            self.pubsub.notify("messages", &message);
+        if let Some(content) = connection.get_message() {
+            let message = Message::new(&content);
+            self.chatsubs = self.chatsubs
+                .iter()
+                .filter_map(|sender| sender
+                    .send(message.clone())
+                    .ok()
+                    .map(|_| sender.clone())
+                )
+                .collect();
+            self.chatlog.push(message);
             self.handle_chat_stream(connection);
         } else {
             self.handle_unknown_request(connection);
