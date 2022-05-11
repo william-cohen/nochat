@@ -36,14 +36,29 @@ impl Server {
         let connection = Connection::new(stream);
 
         match connection.get_action() {
-            connection::ClientAction::Join => self.handle_chat_stream(connection),
+            connection::ClientAction::Join => self.handle_welcome(connection),
+            connection::ClientAction::Login => {
+                if let Some(username) = connection.get_message().map(|msg| msg.get_user().to_string()) {
+                    self.handle_chat_stream(connection, username)
+                }
+            },
             connection::ClientAction::SendMessage => self.handle_message_post(connection),
-            _ => self.handle_unknown_request(connection)
+            _ => { 
+                self.handle_unknown_request(connection)
+                    .unwrap_or_else(|error| println!("{}", error)); 
+            }
         }
     }
 
-    fn handle_chat_stream(&mut self, mut connection: Connection) {
-        let first = pages::render_chat_room();
+    fn handle_welcome(&mut self, mut connection: Connection) {
+        let page = pages::render_login_page();
+
+        connection.push("HTTP/1.1 200 OK\r\nContent-type: text/html; charset=utf-8\r\n\r\n").unwrap();
+        connection.push(&page).unwrap();
+    }
+
+    fn handle_chat_stream(&mut self, mut connection: Connection, username: String) {
+        let first = pages::render_chat_room(&username);
 
         connection.push("HTTP/1.1 200 OK\r\nContent-type: text/html; charset=utf-8\r\n\r\n").unwrap();
         connection.push(&first).unwrap();
@@ -68,9 +83,7 @@ impl Server {
     }
 
     fn handle_message_post(&mut self, connection: Connection) {
-        if let Some(content) = connection.get_message() {
-            let message = Message::new(&content);
-
+        if let Some(message) = connection.get_message() {
             self.chatsubs = self.chatsubs
                 .iter()
                 .filter_map(|sender| sender
@@ -80,16 +93,17 @@ impl Server {
                 )
                 .collect();
 
-            self.chatlog.push(message);
-            self.handle_chat_stream(connection);
+            self.chatlog.push(message.clone());
+            self.handle_chat_stream(connection, message.get_user().to_string());
         } else {
             self.handle_unknown_request(connection);
         }
     }
 
-    fn handle_unknown_request(&self, mut connection: Connection) {
-        connection.push("HTTP/1.1 400 Bad Request\r\n\r\n").unwrap();
-        connection.push("<html><body><p>Invalid request</p></body></html>").unwrap();
+    fn handle_unknown_request(&self, mut connection: Connection) -> Result<(), std::io::Error> {
+        let _ = connection.push("HTTP/1.1 400 Bad Request\r\n\r\n")?;
+        let r = connection.push("<html><body><p>Invalid request</p></body></html>")?;
+        return Ok(r);
     }
 
 }

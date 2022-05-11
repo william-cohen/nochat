@@ -5,10 +5,10 @@ pub struct Message {
 }
 
 impl Message {
-    pub fn new(content: &str) -> Self {
+    pub fn new(content: String, username: String) -> Self {
         Message {
-            content: content.to_owned(),
-            username: "Dummy".to_owned()
+            content,
+            username
         }
     }
 

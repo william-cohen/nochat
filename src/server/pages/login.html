@@ -214,21 +214,18 @@
     <header class="backtitle">
       <h3>Chat room | no-script</h3>
     </header>
+
     <div class="container">
       <div class="box">
         <div class="content">
-          <span class="title">Say something</span>
-          <form class="input-group" action="/chat" method="POST">
-            <label for="message">Enter your message</label>
-            <input name="message" id="message" autofocus />
-            {test}
+          <span class="title">Welcome!</span>
+          <form class="input-group" action="/welcome" method="POST" novalidate>
+            <label for="message">Username</label>
+            <input type="hidden" id="message" name="message" value="na">
+            <input name="username" id="username" autofocus />
           </form>
         </div>
       </div>
-      
-
-      <div class="box" style="margin-top: 50px;">
-        <div class="content">
-          <span class="title">Chat</span>
-          <ul class="menu">
-            
+    </div>
+  </body>
+</html>            
