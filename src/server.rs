@@ -8,6 +8,7 @@ use crate::server::message::Message;
 
 mod connection;
 mod message;
+mod pages;
 
 pub struct Server {
     chatsubs: Vec<mpsc::Sender<Message>>,
@@ -35,14 +36,14 @@ impl Server {
         let connection = Connection::new(stream);
 
         match connection.get_action() {
-            connection::ClientAction::READ_CHAT => self.handle_chat_stream(connection),
-            connection::ClientAction::SEND_MESSAGE => self.handle_message_post(connection),
+            connection::ClientAction::Join => self.handle_chat_stream(connection),
+            connection::ClientAction::SendMessage => self.handle_message_post(connection),
             _ => self.handle_unknown_request(connection)
         }
     }
 
     fn handle_chat_stream(&mut self, mut connection: Connection) {
-        let first = fs::read_to_string("first.html").unwrap();
+        let first = pages::render_chat_room();
 
         connection.push("HTTP/1.1 200 OK\r\nContent-type: text/html; charset=utf-8\r\n\r\n").unwrap();
         connection.push(&first).unwrap();
@@ -56,7 +57,12 @@ impl Server {
 
         thread::spawn(move || {
             for message in rx.iter() {
-                connection.push_message(&message).unwrap();
+                match connection.push_message(&message) {
+                    Ok(_) => {},
+                    Err(_error) => {
+                        return
+                    },
+                }
             }
         });
     }
@@ -64,6 +70,7 @@ impl Server {
     fn handle_message_post(&mut self, connection: Connection) {
         if let Some(content) = connection.get_message() {
             let message = Message::new(&content);
+
             self.chatsubs = self.chatsubs
                 .iter()
                 .filter_map(|sender| sender
@@ -72,6 +79,7 @@ impl Server {
                     .map(|_| sender.clone())
                 )
                 .collect();
+
             self.chatlog.push(message);
             self.handle_chat_stream(connection);
         } else {

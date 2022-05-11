@@ -9,19 +9,13 @@ use super::message::Message;
 
 pub const CRLF: &str = "\r\n";
 
-#[derive(Clone, Copy)]
-pub enum HttpVerb {
-    GET,
-    POST,
-    UNKNOWN
-}
-
 
 #[derive(Clone, Copy)]
 pub enum ClientAction {
-    READ_CHAT,
-    SEND_MESSAGE,
-    UNKNOWN
+    Join,
+    Login,
+    SendMessage,
+    Unknown
 }
 
 pub struct Connection {
@@ -41,18 +35,14 @@ impl Connection {
         let action = captures
             .and_then(|matches| matches.get(1).zip(matches.get(2)))
             .map(|(verb_match, path_match)| {
-                match (verb_match.as_str(), path_match.as_str())   {
-                    ("GET", "/") => ClientAction::READ_CHAT,
-                    (_, "/send") => ClientAction::SEND_MESSAGE,
-                    _ => ClientAction::UNKNOWN
+                match (verb_match.as_str(), path_match.as_str()) {
+                    ("GET", "/") => ClientAction::Join,
+                    ("POST", "/chat") => ClientAction::SendMessage,
+                    _ => ClientAction::Unknown
                 }
             })
-            .unwrap_or(ClientAction::UNKNOWN);
+            .unwrap_or(ClientAction::Unknown);
         Connection { stream, action, request }
-    }
-
-    pub fn read(&self) -> String {
-        self.request.clone()
     }
 
     pub fn get_action(&self) -> ClientAction {
@@ -76,10 +66,6 @@ impl Connection {
         self.stream
             .write_all(content.as_bytes())
             .and_then(|_| self.stream.flush())
-    }
-
-    pub fn push_crfl(&mut self) -> Result<(), Error> {
-        self.push(CRLF)
     }
 
     pub fn push_message(&mut self, message: &Message) -> Result<(), Error> {
